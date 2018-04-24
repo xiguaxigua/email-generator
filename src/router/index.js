@@ -8,7 +8,7 @@ export default new Router({
     {
       path: '/',
       name: 'JSONToHTML',
-      component: () => import('@/pages/JSONToHTMl')
+      component: () => import('@/pages/JSONToHTML')
     }
   ]
 })
