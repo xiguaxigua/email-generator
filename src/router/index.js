@@ -7,8 +7,13 @@ export default new Router({
   routes: [
     {
       path: '/',
+      name: '配置页面',
+      component: () => import('@/pages/set-detail')
+    },
+    {
+      path: '/convert',
       name: 'JSONToHTML',
-      component: () => import('@/pages/JSONToHTML')
+      component: () => import('@/pages/json-to-html')
     }
   ]
 })
