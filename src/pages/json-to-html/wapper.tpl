@@ -119,6 +119,7 @@
     
     .emailBody {
       background-color: #FFFFFF;
+      padding-bottom: 20px;
       border: 1px solid #DDDDDD;
       border-collapse: separate;
       border-radius: 4px;
@@ -258,7 +259,7 @@
         width: 100% !important;
         min-width: 100% !important;
       }
-      table[id="emailBody"],
+      table[class="emailBody"],
       table[class="flexibleContainer"] {
         width: 100% !important;
       }
@@ -279,7 +280,7 @@
       td[class="imageContentLast"] {
         padding-top: 20px !important;
       }
-      td[id="bodyCell"] {
+      td[class="bodyCell"] {
         padding-top: 10px !important;
         padding-Right: 10px !important;
         padding-Left: 10px !important;

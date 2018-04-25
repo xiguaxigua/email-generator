@@ -1,5 +1,403 @@
 <template>
-  <div class="main-canvas">
-    1
+  <div class="main-canvas" @click="current = 0">
+    <center>
+      <table
+        border="0"
+        cellpadding="0"
+        cellspacing="0"
+        height="100%"
+        width="100%"
+        class="bodyTable">
+        <tr>
+          <td align="center" valign="top" class="bodyCell" @click.stop>
+            <table border="0" cellpadding="0" cellspacing="0" width="600" class="emailBody">
+              <tr>
+                <td
+                  align="center"
+                  valign="top"
+                  @dragenter.stop.prevent="dragEnter"
+                  @dragleave.stop.prevent="dragLeave"
+                  @dragover.stop.prevent
+                  @drop.stop.prevent="drop"
+                  class="canvas-container">
+                  <div class="container-placeholder"></div>
+                  <component
+                    v-for="(item, index) in content"
+                    :class="{
+                      'current-focus': item.id === current,
+                      'on-dragging-state': dragging
+                    }"
+                    @click.native="clickHandler(item)"
+                    :key="index"
+                    :is="item.name">
+                  </component>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </center>
   </div>
 </template>
+
+<script>
+import { mapState } from 'vuex'
+import Block from '../mail-comps/block'
+import LeftRightBlock from '../mail-comps/left-right-block'
+
+export default {
+  data () {
+    return {
+      content: [],
+      current: 0,
+      dragging: false
+    }
+  },
+
+  computed: {
+    ...mapState(['draggingItem'])
+  },
+
+  methods: {
+    dragEnter (e) {
+      console.log('e', e)
+      console.log('item', this.draggingItem)
+      this.dragging = true
+    },
+    dragLeave () {
+      this.dragging = true
+    },
+    drop () {
+      this.dragging = false
+      const {
+        content,
+        draggingItem
+      } = this
+      const {
+        type
+      } = draggingItem
+      if (type === 'component') {
+        content.push(draggingItem)
+      }
+    },
+    clickHandler (item) {
+      this.current = item.id
+    }
+  },
+
+  components: {
+    Block,
+    LeftRightBlock
+  }
+}
+</script>
+
+<style lang="less">
+.page-set-detail {
+  .main-canvas {
+    .canvas-container {
+      min-height: 100px;
+    }
+
+    .container-placeholder {
+      float: left;
+      height: 100px;
+      width: 0;
+      visibility: hidden;
+    }
+
+    .on-dragging-state {
+      outline: 1px solid red;
+    }
+
+    .current-focus {
+      outline: 1px dotted blue;
+    }
+
+    body,
+    .bodyTable,
+    .bodyCell {
+      width: 100% !important;
+      height: 100% !important;
+      padding: 0;
+      margin: 0;
+    }
+
+    table {
+      border-collapse: collapse;
+    }
+
+    img,
+    a img {
+      text-decoration: none;
+      border: 0;
+      outline: none;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      padding: 0;
+      margin: 0;
+    }
+
+    p {
+      margin: 1em 0;
+    }
+
+    .ReadMsgBody {
+      width: 100%;
+    }
+
+    .ExternalClass {
+      width: 100%;
+    }
+
+    .ExternalClass,
+    .ExternalClass p,
+    .ExternalClass span,
+    .ExternalClass font,
+    .ExternalClass td,
+    .ExternalClass div {
+      line-height: 100%;
+    }
+
+    table,
+    td {
+      mso-table-lspace: 0;
+      mso-table-rspace: 0;
+    }
+
+    .outlook a {
+      padding: 0;
+    }
+
+    img {
+      -ms-interpolation-mode: bicubic;
+    }
+
+    body,
+    table,
+    td,
+    p,
+    a,
+    li,
+    blockquote {
+      -webkit-text-size-adjust: 100%;
+          -ms-text-size-adjust: 100%;
+    }
+
+    .flexibleContainerCell {
+      padding-top: 20px;
+      padding-bottom: 20px;
+      padding-Left: 20px;
+      padding-Right: 20px;
+    }
+
+    .flexibleImage {
+      height: auto;
+    }
+
+    .bottomShim {
+      padding-bottom: 20px;
+    }
+
+    .imageContent,
+    .imageContentLast {
+      padding-bottom: 20px;
+    }
+
+    .nestedContainerCell {
+      padding-top: 20px;
+
+      padding-Left: 20px;
+      padding-Right: 20px;
+    }
+
+    body,
+    .bodyTable {
+      background-color: #f5f5f5;
+    }
+
+    .bodyCell {
+      padding-top: 40px;
+      padding-bottom: 40px;
+    }
+
+    .emailBody {
+      margin-bottom: 10px;
+      padding-bottom: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-collapse: separate;
+      border-radius: 4px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: #202020;
+      font-family: Helvetica;
+      font-size: 20px;
+      line-height: 125%;
+      text-align: Left;
+    }
+
+    .textContent,
+    .textContentLast {
+      padding-bottom: 20px;
+      color: #404040;
+      font-family: Helvetica;
+      font-size: 16px;
+      line-height: 125%;
+      text-align: Left;
+    }
+
+    .textContent a,
+    .textContentLast a {
+      color: #2c9ab7;
+      text-decoration: underline;
+    }
+
+    .nestedContainer {
+      background-color: #e5e5e5;
+      border: 1px solid #ccc;
+    }
+
+    .emailButton {
+      background-color: #2c9ab7;
+      border-collapse: separate;
+      border-radius: 4px;
+    }
+
+    .buttonContent {
+      padding: 15px;
+      color: #fff;
+      font-family: Helvetica;
+      font-size: 18px;
+      font-weight: bold;
+      line-height: 100%;
+      text-align: center;
+    }
+
+    .buttonContent a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .emailCalendar {
+      background-color: #fff;
+      border: 1px solid #ccc;
+    }
+
+    .emailCalendarMonth {
+      padding-top: 10px;
+      padding-bottom: 10px;
+      color: #fff;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      font-weight: bold;
+      text-align: center;
+      background-color: #2c9ab7;
+    }
+
+    .emailCalendarDay {
+      padding-top: 20px;
+      padding-bottom: 20px;
+      color: #2c9ab7;
+      font-family: Helvetica, Arial, sans-serif;
+      font-size: 60px;
+      font-weight: bold;
+      line-height: 100%;
+      text-align: center;
+    }
+
+    .btn {
+      box-sizing: border-box;
+      width: 100%;
+    }
+
+    .btn > tbody > tr > td {
+      padding-bottom: 15px;
+    }
+
+    .btn table {
+      width: auto;
+    }
+
+    .btn table td {
+      text-align: center;
+      background-color: #fff;
+      border-radius: 5px;
+    }
+
+    .btn a {
+      display: inline-block;
+      box-sizing: border-box;
+      padding: 12px 25px;
+      margin: 0;
+      color: #3498db;
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: none;
+      text-transform: capitalize;
+      background-color: #fff;
+      border: solid 1px #3498db;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .btn-primary table td {
+      background-color: #3498db;
+    }
+
+    .btn-primary a {
+      color: #fff;
+      background-color: #3498db;
+      border-color: #3498db;
+    }
+  }
+}
+
+@media only screen and (max-width: 900px) {
+  table[class="emailBody"],
+  table[class="flexibleContainer"] {
+    width: 100% !important;
+  }
+  img[class="flexibleImage"] {
+    width: 100% !important;
+    height: auto !important;
+  }
+  table[class="emailButton"] {
+    width: 100% !important;
+  }
+  td[class="buttonContent"] {
+    padding: 0 !important;
+  }
+  td[class="buttonContent"] a {
+    padding: 15px !important;
+  }
+  td[class="textContentLast"],
+  td[class="imageContentLast"] {
+    padding-top: 20px !important;
+  }
+  td[class="bodyCell"] {
+    padding-top: 10px !important;
+
+    padding-Left: 10px !important;
+    padding-Right: 10px !important;
+  }
+  .mcnDividerBlock {
+    min-height: 12px;
+    table-layout: fixed !important;
+  }
+}
+</style>

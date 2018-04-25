@@ -4,7 +4,13 @@ export const MENUS = [
   { label: '全局样式', key: 'global-style' }
 ]
 
-export const COMP_LIST = [
-  { label: '容器', key: 'block', icon: 'block' },
-  { label: '左右分栏容器', key: 'left-right-block', icon: 'left-right-block' }
+export const COMPS_LIST = [
+  { label: '普通', key: 'block', icon: 'block' },
+  { label: '左右分栏', key: 'left-right-block', icon: 'left-right-block' }
+]
+
+export const TAGS_LIST = [
+  { label: '标题', key: 'h', icon: 'tag-h' },
+  { label: '文字', key: 'p', icon: 'tag-p' },
+  { label: '图片', key: 'img', icon: 'tag-img' }
 ]
