@@ -46,8 +46,6 @@
 
 <script>
 import { mapState, mapMutations } from 'vuex'
-import Block from '../mail-comps/block'
-import LeftRightBlock from '../mail-comps/left-right-block'
 import DragWapper from './drag-wapper'
 
 export default {
@@ -112,7 +110,7 @@ export default {
           parent.insertBefore(emptyHolder, node)
           this.directionUp = true
         }
-      } else {
+      } else if (type === 'betweenComponent  ') {
         // parent.removeChild(parent.children[index])
         if (directionBottom) {
           parent.insertBefore(emptyHolder, node.nextSibling)
@@ -190,8 +188,6 @@ export default {
   },
 
   components: {
-    Block,
-    LeftRightBlock,
     DragWapper
   }
 }

@@ -20,3 +20,9 @@
     </tr>
   </table>
 </template>
+
+<script>
+export default {
+  name: 'LeftRightBlock'
+}
+</script>
