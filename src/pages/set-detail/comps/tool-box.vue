@@ -31,7 +31,6 @@ export default {
 
   methods: {
     clickHandler (tab, event) {
-      console.log(tab, event)
     }
   },
 

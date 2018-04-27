@@ -119,7 +119,10 @@
     
     .emailBody {
       background-color: #FFFFFF;
-      padding-bottom: 20px;
+      padding-top: 5px;
+      padding-bottom: 5px;
+      padding-left: 5px;
+      padding-right: 5px;
       border: 1px solid #DDDDDD;
       border-collapse: separate;
       border-radius: 4px;

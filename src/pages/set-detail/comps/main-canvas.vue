@@ -15,22 +15,25 @@
                 <td
                   align="center"
                   valign="top"
-                  @dragenter.stop.prevent="dragEnter"
-                  @dragleave.stop.prevent="dragLeave"
                   @dragover.stop.prevent
                   @drop.stop.prevent="drop"
+                  @dragleave.stop.prevent="dragLeave"
                   class="canvas-container">
-                  <div class="container-placeholder"></div>
-                  <component
+                  <div class="container-placeholder" v-if="!content.length"></div>
+                  <drag-wapper
                     v-for="(item, index) in content"
+                    :key="item.id"
                     :class="{
                       'current-focus': item.id === current,
                       'on-dragging-state': dragging
                     }"
-                    @click.native="clickHandler(item)"
-                    :key="index"
-                    :is="item.name">
-                  </component>
+                    :info="item"
+                    :index="index"
+                    @del="del"
+                    @dragenter.native.prevent="dragEnterComp"
+                    @dragover.native.stop.prevent="dragOverComp">
+                    <component :is="item.name"></component>
+                  </drag-wapper>
                 </td>
               </tr>
             </table>
@@ -42,12 +45,17 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapMutations } from 'vuex'
 import Block from '../mail-comps/block'
 import LeftRightBlock from '../mail-comps/left-right-block'
+import DragWapper from './drag-wapper'
 
 export default {
   data () {
+    this.directionUp = false
+    this.currentNode = null
+    this.currentParent = null
+
     return {
       content: [],
       current: 0,
@@ -60,44 +68,147 @@ export default {
   },
 
   methods: {
+    ...mapMutations({
+      setDragItem: 'SET_DRAGGING_ITEM'
+    }),
     dragEnter (e) {
-      console.log('e', e)
-      console.log('item', this.draggingItem)
+      const { draggingItem } = this
+      const { type } = draggingItem
+      if (type !== 'component') return
       this.dragging = true
     },
-    dragLeave () {
-      this.dragging = true
+    dragLeave (e) {
+      const classList = e.fromElement.classList
+      if (!classList.contains('empty-holder')) {
+        this.dragging = false
+        this.clearEmptyHolder()
+      }
     },
-    drop () {
-      this.dragging = false
+    dragEnterComp (e) {
+    },
+    dragOverComp (e) {
       const {
-        content,
+        clearEmptyHolder,
         draggingItem
       } = this
       const {
         type
-      } = draggingItem
+      } = draggingItem || {}
+
+      const directionBottom = this.getDirection(e)
+      const node = e.currentTarget
+      const parent = node.parentElement
+      this.currentNode = node
+      this.currentParent = parent
+
+      clearEmptyHolder()
+
+      const emptyHolder = this.getEmptyHolder()
       if (type === 'component') {
-        content.push(draggingItem)
+        if (directionBottom) {
+          parent.insertBefore(emptyHolder, node.nextSibling)
+          this.directionUp = false
+        } else if (type === 'betweenComponent') {
+          parent.insertBefore(emptyHolder, node)
+          this.directionUp = true
+        }
+      } else {
+        // parent.removeChild(parent.children[index])
+        if (directionBottom) {
+          parent.insertBefore(emptyHolder, node.nextSibling)
+          this.directionUp = false
+        } else {
+          parent.insertBefore(emptyHolder, node)
+          this.directionUp = true
+        }
       }
+    },
+    drop (e) {
+      const {
+        currentNode,
+        currentParent,
+        content,
+        draggingItem,
+        clearEmptyHolder
+      } = this
+      const {
+        type,
+        index: originIndex
+      } = draggingItem || {}
+      const parent = currentParent || e.currentTarget.parentElement
+      const nodes = Array.prototype.slice.call(parent.children)
+      const index = nodes.indexOf(currentNode)
+
+      clearEmptyHolder()
+
+      if (type === 'component') {
+        this.dragging = false
+        this.setDragItem(null)
+
+        if (this.directionUp) {
+          content.splice(index - 1, 0, draggingItem)
+        } else {
+          content.splice(index + 1, 0, draggingItem)
+        }
+      } else if (type === 'betweenComponent') {
+        this.dragging = false
+        this.setDragItem(null)
+        content.splice(originIndex, 1)
+        if (this.directionUp) {
+          content.splice(index - 1, 0, draggingItem)
+        } else {
+          content.splice(index + 1, 0, draggingItem)
+        }
+      }
+      const contentTemp = content
+      this.content = []
+      this.$nextTick(() => {
+        this.content = contentTemp
+      })
+    },
+    clearEmptyHolder () {
+      const emptyHolderEl = document.querySelector('.empty-holder')
+      if (emptyHolderEl) emptyHolderEl.parentNode.removeChild(emptyHolderEl)
+    },
+    del (index) {
+      this.content.splice(index, 1)
+    },
+    getDirection (e) {
+      const node = e.currentTarget
+      const y = e.offsetY
+      const height = node.clientHeight
+      return y > height * 0.5
     },
     clickHandler (item) {
       this.current = item.id
+    },
+    getEmptyHolder () {
+      const box = document.createElement('div')
+      box.classList.add('empty-holder')
+      return box
     }
   },
 
   components: {
     Block,
-    LeftRightBlock
+    LeftRightBlock,
+    DragWapper
   }
 }
 </script>
 
 <style lang="less">
+@import './main-canvas.less';
 .page-set-detail {
   .main-canvas {
     .canvas-container {
       min-height: 100px;
+    }
+
+    .empty-holder {
+      height: 50px;
+      background-color: #ccc;
+      border: 1px solid blue;
     }
 
     .container-placeholder {
@@ -114,290 +225,6 @@ export default {
     .current-focus {
       outline: 1px dotted blue;
     }
-
-    body,
-    .bodyTable,
-    .bodyCell {
-      width: 100% !important;
-      height: 100% !important;
-      padding: 0;
-      margin: 0;
-    }
-
-    table {
-      border-collapse: collapse;
-    }
-
-    img,
-    a img {
-      text-decoration: none;
-      border: 0;
-      outline: none;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      padding: 0;
-      margin: 0;
-    }
-
-    p {
-      margin: 1em 0;
-    }
-
-    .ReadMsgBody {
-      width: 100%;
-    }
-
-    .ExternalClass {
-      width: 100%;
-    }
-
-    .ExternalClass,
-    .ExternalClass p,
-    .ExternalClass span,
-    .ExternalClass font,
-    .ExternalClass td,
-    .ExternalClass div {
-      line-height: 100%;
-    }
-
-    table,
-    td {
-      mso-table-lspace: 0;
-      mso-table-rspace: 0;
-    }
-
-    .outlook a {
-      padding: 0;
-    }
-
-    img {
-      -ms-interpolation-mode: bicubic;
-    }
-
-    body,
-    table,
-    td,
-    p,
-    a,
-    li,
-    blockquote {
-      -webkit-text-size-adjust: 100%;
-          -ms-text-size-adjust: 100%;
-    }
-
-    .flexibleContainerCell {
-      padding-top: 20px;
-      padding-bottom: 20px;
-      padding-Left: 20px;
-      padding-Right: 20px;
-    }
-
-    .flexibleImage {
-      height: auto;
-    }
-
-    .bottomShim {
-      padding-bottom: 20px;
-    }
-
-    .imageContent,
-    .imageContentLast {
-      padding-bottom: 20px;
-    }
-
-    .nestedContainerCell {
-      padding-top: 20px;
-
-      padding-Left: 20px;
-      padding-Right: 20px;
-    }
-
-    body,
-    .bodyTable {
-      background-color: #f5f5f5;
-    }
-
-    .bodyCell {
-      padding-top: 40px;
-      padding-bottom: 40px;
-    }
-
-    .emailBody {
-      margin-bottom: 10px;
-      padding-bottom: 20px;
-      background-color: #fff;
-      border: 1px solid #ddd;
-      border-collapse: separate;
-      border-radius: 4px;
-    }
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      color: #202020;
-      font-family: Helvetica;
-      font-size: 20px;
-      line-height: 125%;
-      text-align: Left;
-    }
-
-    .textContent,
-    .textContentLast {
-      padding-bottom: 20px;
-      color: #404040;
-      font-family: Helvetica;
-      font-size: 16px;
-      line-height: 125%;
-      text-align: Left;
-    }
-
-    .textContent a,
-    .textContentLast a {
-      color: #2c9ab7;
-      text-decoration: underline;
-    }
-
-    .nestedContainer {
-      background-color: #e5e5e5;
-      border: 1px solid #ccc;
-    }
-
-    .emailButton {
-      background-color: #2c9ab7;
-      border-collapse: separate;
-      border-radius: 4px;
-    }
-
-    .buttonContent {
-      padding: 15px;
-      color: #fff;
-      font-family: Helvetica;
-      font-size: 18px;
-      font-weight: bold;
-      line-height: 100%;
-      text-align: center;
-    }
-
-    .buttonContent a {
-      display: block;
-      color: #fff;
-      text-decoration: none;
-    }
-
-    .emailCalendar {
-      background-color: #fff;
-      border: 1px solid #ccc;
-    }
-
-    .emailCalendarMonth {
-      padding-top: 10px;
-      padding-bottom: 10px;
-      color: #fff;
-      font-family: Helvetica, Arial, sans-serif;
-      font-size: 16px;
-      font-weight: bold;
-      text-align: center;
-      background-color: #2c9ab7;
-    }
-
-    .emailCalendarDay {
-      padding-top: 20px;
-      padding-bottom: 20px;
-      color: #2c9ab7;
-      font-family: Helvetica, Arial, sans-serif;
-      font-size: 60px;
-      font-weight: bold;
-      line-height: 100%;
-      text-align: center;
-    }
-
-    .btn {
-      box-sizing: border-box;
-      width: 100%;
-    }
-
-    .btn > tbody > tr > td {
-      padding-bottom: 15px;
-    }
-
-    .btn table {
-      width: auto;
-    }
-
-    .btn table td {
-      text-align: center;
-      background-color: #fff;
-      border-radius: 5px;
-    }
-
-    .btn a {
-      display: inline-block;
-      box-sizing: border-box;
-      padding: 12px 25px;
-      margin: 0;
-      color: #3498db;
-      font-size: 14px;
-      font-weight: bold;
-      text-decoration: none;
-      text-transform: capitalize;
-      background-color: #fff;
-      border: solid 1px #3498db;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .btn-primary table td {
-      background-color: #3498db;
-    }
-
-    .btn-primary a {
-      color: #fff;
-      background-color: #3498db;
-      border-color: #3498db;
-    }
-  }
-}
-
-@media only screen and (max-width: 900px) {
-  table[class="emailBody"],
-  table[class="flexibleContainer"] {
-    width: 100% !important;
-  }
-  img[class="flexibleImage"] {
-    width: 100% !important;
-    height: auto !important;
-  }
-  table[class="emailButton"] {
-    width: 100% !important;
-  }
-  td[class="buttonContent"] {
-    padding: 0 !important;
-  }
-  td[class="buttonContent"] a {
-    padding: 15px !important;
-  }
-  td[class="textContentLast"],
-  td[class="imageContentLast"] {
-    padding-top: 20px !important;
-  }
-  td[class="bodyCell"] {
-    padding-top: 10px !important;
-
-    padding-Left: 10px !important;
-    padding-Right: 10px !important;
-  }
-  .mcnDividerBlock {
-    min-height: 12px;
-    table-layout: fixed !important;
   }
 }
 </style>

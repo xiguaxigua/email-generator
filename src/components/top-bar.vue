@@ -20,7 +20,6 @@ export default {
   },
   methods: {
     selectHandler () {
-      console.log('select')
     }
   }
 }
